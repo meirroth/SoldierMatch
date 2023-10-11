@@ -7,5 +7,8 @@ export default defineNuxtConfig({
   nitro: {
     plugins: ["@/server/db/index.ts"],
   },
-  modules: ['@nuxt/ui']
+  modules: ['@nuxt/ui'],
+  colorMode: {
+    preference: 'light',
+  },
 });
