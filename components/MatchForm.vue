@@ -1,8 +1,8 @@
 
 <template>
   <UCard>
-    <h1 class="text-center text-2xl font-semibold mb-2 text-gray-800">SoldierMatch</h1>
-    <h2 class="text-center text-md mb-4 text-gray-600 max-w-xs mx-auto">
+    <h1 class="text-center text-2xl font-semibold mb-2 text-gray-800 dark:text-gray-200">SoldierMatch</h1>
+    <h2 class="text-center text-md mb-4 text-gray-600 dark:text-gray-300 max-w-xs mx-auto">
       Enter either soldier or learner name, or both, to create a match.
     </h2>
     <form @submit.prevent="submitForm">
@@ -18,7 +18,7 @@
         <UButton type="submit" block size="md" :loading="isLoading">Submit</UButton>
       </div>
     </form>
-    <p class="text-center text-gray-600 mt-6">
+    <p class="text-center text-gray-600 dark:text-gray-300 mt-6">
       Total matches: {{ matches?.filter(match => match.soldier && match.learner).length }}<br>
       Soldiers missing a match: {{ matches?.filter(match => match.learner === null).length }}<br>
       Learners missing a match: {{ matches?.filter(match => match.soldier === null).length }}<br>

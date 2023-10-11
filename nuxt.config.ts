@@ -8,7 +8,4 @@ export default defineNuxtConfig({
     plugins: ["@/server/db/index.ts"],
   },
   modules: ['@nuxt/ui'],
-  colorMode: {
-    preference: 'light',
-  },
 });
