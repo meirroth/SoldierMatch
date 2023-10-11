@@ -28,12 +28,6 @@
         </button>
       </div>
     </form>
-    <div class="text-red-600 text-center mt-2 absolute inset-x-0 -bottom-10">
-      <span v-if="formFeedback === 'incomplete'">Please enter a name.</span>
-      <span v-if="formFeedback === 'invalid'">Please enter a valid name.</span>
-      <span v-if="formFeedback === 'error'">There was an error processing your request.</span>
-      <span v-if="formFeedback === 'success'" class="text-green-600">Form submitted!</span>
-    </div>
     <p class="text-center text-gray-600 mt-6">
       Total matches: {{ matches?.filter(match => match.soldier && match.learner).length }}<br>
       Soldiers missing a match: {{ matches?.filter(match => match.learner === null).length }}<br>
@@ -44,21 +38,19 @@
 
 <script lang="ts" setup>
 
-const { data: matches } = await useFetch('/api/matches')
+const toast = useToast()
 
-type FormFeedbackType = 'incomplete' | 'invalid' | 'error' | 'success' | null
+const { data: matches, refresh } = await useFetch('/api/matches')
 
 const soldier = ref('')
 const learner = ref('')
 const isLoading = ref(false)
-const formFeedback: Ref<FormFeedbackType> = ref(null)
 
 const submitForm = async () => {
   isLoading.value = true
-  formFeedback.value = null
 
   if (!soldier.value && !learner.value) {
-    formFeedback.value = 'incomplete'
+    toast.add({ title: 'Please enter a name.', icon: '', color: 'red' })
     isLoading.value = false
     return
   }
@@ -71,13 +63,13 @@ const submitForm = async () => {
     })
     soldier.value = ''
     learner.value = ''
-    formFeedback.value = 'success'
+    toast.add({ title: 'Form submitted!', icon: '', color: 'green' })
     console.log('Match created', res)
 
     await refresh()
   } catch (e) {
     console.error(e)
-    formFeedback.value = 'error'
+    toast.add({ title: 'There was an error processing your request.', icon: '', color: 'red' })
   } finally {
     isLoading.value = false
   }
