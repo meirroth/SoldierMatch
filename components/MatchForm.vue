@@ -34,10 +34,17 @@
       <span v-if="formFeedback === 'error'">There was an error processing your request.</span>
       <span v-if="formFeedback === 'success'" class="text-green-600">Form submitted!</span>
     </div>
+    <p class="text-center text-gray-600 mt-6">
+      Total matches: {{ matches?.filter(match => match.soldier && match.learner).length }}<br>
+      Soldiers missing a match: {{ matches?.filter(match => match.learner === null).length }}<br>
+      Learners missing a match: {{ matches?.filter(match => match.soldier === null).length }}<br>
+    </p>
   </div>
 </template>
 
 <script lang="ts" setup>
+
+const { data: matches } = await useFetch('/api/matches')
 
 type FormFeedbackType = 'incomplete' | 'invalid' | 'error' | 'success' | null
 
@@ -66,6 +73,8 @@ const submitForm = async () => {
     learner.value = ''
     formFeedback.value = 'success'
     console.log('Match created', res)
+
+    await refresh()
   } catch (e) {
     console.error(e)
     formFeedback.value = 'error'
