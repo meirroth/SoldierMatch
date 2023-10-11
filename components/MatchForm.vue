@@ -1,6 +1,6 @@
 
 <template>
-  <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md relative">
+  <UCard>
     <h1 class="text-center text-2xl font-semibold mb-2 text-gray-800">SoldierMatch</h1>
     <h2 class="text-center text-md mb-4 text-gray-600">
       Enter either soldier or learner name, or both, <br> to create a match.
@@ -8,24 +8,14 @@
     <form @submit.prevent="submitForm">
       <div class="space-y-4">
         <div class="flex space-x-4">
-          <div class="w-1/2">
-            <label for="soldier" class="block text-gray-600 text-sm font-medium">
-              Soldier name
-            </label>
-            <input v-model.trim="soldier" type="text" id="soldier" name="soldier"
-              class="w-full p-2 border rounded-lg focus:ring focus:border-indigo-300" />
-          </div>
-          <div class="w-1/2">
-            <label for="learner" class="block text-gray-600 text-sm font-medium">
-              Learner name
-            </label>
-            <input v-model.trim="learner" type="text" id="learner" name="learner"
-              class="w-full p-2 border rounded-lg focus:ring focus:border-indigo-300" />
-          </div>
+          <UFormGroup label="Soldier name" name="soldier" size="md" class="w-1/2">
+            <UInput v-model.trim="soldier" />
+          </UFormGroup>
+          <UFormGroup label="Learner name" name="learner" size="md" class="w-1/2">
+            <UInput v-model.trim="learner" />
+          </UFormGroup>
         </div>
-        <button type="submit" class="w-full bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700">
-          {{ isLoading ? 'Submitting...' : 'Submit' }}
-        </button>
+        <UButton type="submit" block size="md" :loading="isLoading">Submit</UButton>
       </div>
     </form>
     <p class="text-center text-gray-600 mt-6">
@@ -33,11 +23,16 @@
       Soldiers missing a match: {{ matches?.filter(match => match.learner === null).length }}<br>
       Learners missing a match: {{ matches?.filter(match => match.soldier === null).length }}<br>
     </p>
-  </div>
+
+    <UModal v-model="isModalOpen">
+      <UCard>
+        <p class="text-center">{{ successMessage }}</p>
+      </UCard>
+    </UModal>
+  </UCard>
 </template>
 
 <script lang="ts" setup>
-
 const toast = useToast()
 
 const { data: matches, refresh } = await useFetch('/api/matches')
@@ -45,6 +40,8 @@ const { data: matches, refresh } = await useFetch('/api/matches')
 const soldier = ref('')
 const learner = ref('')
 const isLoading = ref(false)
+const isModalOpen = ref(false)
+const successMessage = ref('')
 
 const submitForm = async () => {
   isLoading.value = true
@@ -55,16 +52,25 @@ const submitForm = async () => {
     return
   }
 
-
   try {
     const res = await $fetch('/api/matches', {
       method: 'POST',
       body: { soldier: soldier.value, learner: learner.value },
     })
-    soldier.value = ''
-    learner.value = ''
+
     toast.add({ title: 'Form submitted!', icon: '', color: 'green' })
     console.log('Match created', res)
+
+    if (soldier.value && !learner.value && res.learner) {
+      successMessage.value = `Soldier ${soldier.value} matched with learner ${res.learner}!`
+      isModalOpen.value = true
+    } else if (learner.value && !soldier.value && res.soldier) {
+      successMessage.value = `Learner ${learner.value} matched with soldier ${res.soldier}!`
+      isModalOpen.value = true
+    }
+
+    soldier.value = ''
+    learner.value = ''
 
     await refresh()
   } catch (e) {
