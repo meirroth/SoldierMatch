@@ -1,5 +1,14 @@
 <template>
-  <div>
-    <NuxtWelcome />
+  <div class="min-h-screen flex items-center justify-center bg-gray-100">
+    <MatchForm />
   </div>
 </template>
+
+<script setup lang="ts">
+useHead({
+  title: 'SoldierMatch',
+  meta: [
+    { name: 'robots', content: 'noindex' }
+  ],
+})
+</script>
