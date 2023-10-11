@@ -2,16 +2,16 @@
 <template>
   <UCard>
     <h1 class="text-center text-2xl font-semibold mb-2 text-gray-800">SoldierMatch</h1>
-    <h2 class="text-center text-md mb-4 text-gray-600">
-      Enter either soldier or learner name, or both, <br> to create a match.
+    <h2 class="text-center text-md mb-4 text-gray-600 max-w-xs mx-auto">
+      Enter either soldier or learner name, or both, to create a match.
     </h2>
     <form @submit.prevent="submitForm">
       <div class="space-y-4">
-        <div class="flex space-x-4">
-          <UFormGroup label="Soldier name" name="soldier" size="md" class="w-1/2">
+        <div class="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-4">
+          <UFormGroup label="Soldier name" name="soldier" size="md" class="w-full sm:w-1/2">
             <UInput v-model.trim="soldier" />
           </UFormGroup>
-          <UFormGroup label="Learner name" name="learner" size="md" class="w-1/2">
+          <UFormGroup label="Learner name" name="learner" size="md" class="w-full sm:w-1/2">
             <UInput v-model.trim="learner" />
           </UFormGroup>
         </div>
@@ -58,7 +58,6 @@ const submitForm = async () => {
       body: { soldier: soldier.value, learner: learner.value },
     })
 
-    toast.add({ title: 'Form submitted!', icon: '', color: 'green' })
     console.log('Match created', res)
 
     if (soldier.value && !learner.value && res.learner) {
@@ -67,6 +66,8 @@ const submitForm = async () => {
     } else if (learner.value && !soldier.value && res.soldier) {
       successMessage.value = `Learner ${learner.value} matched with soldier ${res.soldier}!`
       isModalOpen.value = true
+    } else {
+      toast.add({ title: 'Form submitted!', icon: '', color: 'green' })
     }
 
     soldier.value = ''
