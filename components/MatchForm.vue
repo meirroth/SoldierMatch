@@ -9,13 +9,14 @@
       <div class="space-y-4">
         <div class="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-4">
           <UFormGroup label="Soldier name" name="soldier" size="md" class="w-full sm:w-1/2">
-            <UInput v-model.trim="soldier" />
+            <UTextarea v-model.trim="soldier" :rows="1" autoresize />
           </UFormGroup>
           <UFormGroup label="Learner name" name="learner" size="md" class="w-full sm:w-1/2">
-            <UInput v-model.trim="learner" />
+            <UTextarea v-model.trim="learner" :rows="1" autoresize />
           </UFormGroup>
         </div>
         <UButton type="submit" block size="md" :loading="isLoading">Submit</UButton>
+        <p class="text-sm text-center text-gray-400">Separate multiple names with commas or new lines.</p>
       </div>
     </form>
     <p class="text-center text-gray-600 dark:text-gray-300 mt-6">
@@ -26,7 +27,7 @@
 
     <UModal v-model="isModalOpen">
       <UCard>
-        <p class="text-center">{{ successMessage }}</p>
+        <p class="text-center whitespace-pre-wrap">{{ successMessage }}</p>
       </UCard>
     </UModal>
   </UCard>
@@ -42,43 +43,62 @@ const learner = ref('')
 const isLoading = ref(false)
 const isModalOpen = ref(false)
 const successMessage = ref('')
+const pairs = computed(() => {
+  const soldiers = soldier.value.split(/[\n,]/).map(s => s.trim()).filter(Boolean)
+  const learners = learner.value.split(/[\n,]/).map(l => l.trim()).filter(Boolean)
+  const maxLength = Math.max(soldiers.length, learners.length)
+
+  return Array.from({ length: maxLength }).map((_, index) => ({
+    soldier: soldiers[index] || null,
+    learner: learners[index] || null,
+  }))
+})
 
 const submitForm = async () => {
   isLoading.value = true
 
-  if (!soldier.value && !learner.value) {
-    toast.add({ title: 'Please enter a name.', icon: '', color: 'red' })
+  if (pairs.value.length === 0) {
+    toast.add({ title: 'Please enter a name.', icon: 'i-heroicons-exclamation-triangle', color: 'red' })
     isLoading.value = false
     return
   }
 
-  try {
-    const res = await $fetch('/api/matches', {
-      method: 'POST',
-      body: { soldier: soldier.value, learner: learner.value },
-    })
+  const successes = []
 
-    console.log('Match created', res)
+  for (const pair of pairs.value) {
+    try {
+      const res = await $fetch('/api/matches', {
+        method: 'POST',
+        body: pair,
+      })
 
-    if (soldier.value && !learner.value && res.learner) {
-      successMessage.value = `Soldier ${soldier.value} matched with learner ${res.learner}!`
-      isModalOpen.value = true
-    } else if (learner.value && !soldier.value && res.soldier) {
-      successMessage.value = `Learner ${learner.value} matched with soldier ${res.soldier}!`
-      isModalOpen.value = true
-    } else {
-      toast.add({ title: 'Form submitted!', icon: '', color: 'green' })
+      console.log('Match created', res)
+
+      if (pair.soldier && !pair.learner && res.learner) {
+        successes.push(`Soldier ${pair.soldier} matched with learner ${res.learner}.`)
+      } else if (pair.learner && !pair.soldier && res.soldier) {
+        successes.push(`Learner ${pair.learner} matched with soldier ${res.soldier}.`)
+      } else if (pair.soldier && pair.learner) {
+        successes.push(`Match of ${pair.soldier} and ${pair.learner} submitted.`)
+      } else {
+        successes.push(`${pair.soldier || pair.learner}  submitted.`)
+      }
+
+    } catch (e) {
+      console.error(e)
+      toast.add({ title: 'There was an error processing your request.', icon: 'i-heroicons-exclamation-circle', color: 'red' })
     }
-
-    soldier.value = ''
-    learner.value = ''
-
-    await refresh()
-  } catch (e) {
-    console.error(e)
-    toast.add({ title: 'There was an error processing your request.', icon: '', color: 'red' })
-  } finally {
-    isLoading.value = false
   }
+
+  if (successes.length) {
+    successMessage.value = successes.join('\n')
+    isModalOpen.value = true
+  }
+
+  soldier.value = ''
+  learner.value = ''
+
+  await refresh()
+  isLoading.value = false
 }
 </script>
