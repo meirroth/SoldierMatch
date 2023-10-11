@@ -1,4 +1,5 @@
-import mongoose, { Document, Model, Schema } from 'mongoose'
+import mongoose, { Model, Schema } from 'mongoose'
+import { IMatch } from '@/types/index'
 
 const matchSchema = new Schema(
   {
@@ -9,11 +10,6 @@ const matchSchema = new Schema(
     timestamps: true,
   }
 )
-
-interface IMatch extends Document {
-  learner?: string
-  soldier?: string
-}
 
 const Match: Model<IMatch> = mongoose.model<IMatch>('Match', matchSchema)
 

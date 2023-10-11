@@ -20,9 +20,9 @@
       </div>
     </form>
     <p class="text-center text-gray-600 dark:text-gray-300 mt-6">
-      Total matches: {{ matches?.filter(match => match.soldier && match.learner).length }}<br>
-      Soldiers missing a match: {{ matches?.filter(match => match.learner === null).length }}<br>
-      Learners missing a match: {{ matches?.filter(match => match.soldier === null).length }}<br>
+      Total matches: {{ totalMatches }}<br>
+      Soldiers missing a match: {{ soldiersMissingMatch }}<br>
+      Learners missing a match: {{ learnersMissingMatch }}<br>
     </p>
 
     <UModal v-model="isModalOpen">
@@ -34,15 +34,18 @@
 </template>
 
 <script lang="ts" setup>
+import { IMatch } from '@/types/index'
+
 const toast = useToast()
 
-const { data: matches, refresh } = await useFetch('/api/matches')
+const { data: matches, refresh } = await useFetch<IMatch[]>('/api/matches')
 
 const soldier = ref('')
 const learner = ref('')
 const isLoading = ref(false)
 const isModalOpen = ref(false)
 const successMessage = ref('')
+
 const pairs = computed(() => {
   const soldiers = soldier.value.split(/[\n,]/).map(s => s.trim()).filter(Boolean)
   const learners = learner.value.split(/[\n,]/).map(l => l.trim()).filter(Boolean)
@@ -52,6 +55,15 @@ const pairs = computed(() => {
     soldier: soldiers[index] || null,
     learner: learners[index] || null,
   }))
+})
+const totalMatches = computed(() => {
+  return matches.value?.filter(match => match.soldier && match.learner).length || 0
+})
+const soldiersMissingMatch = computed(() => {
+  return matches.value?.filter(match => match.learner === null).length || 0
+})
+const learnersMissingMatch = computed(() => {
+  return matches.value?.filter(match => match.soldier === null).length || 0
 })
 
 const submitForm = async () => {
@@ -67,7 +79,7 @@ const submitForm = async () => {
 
   for (const pair of pairs.value) {
     try {
-      const res = await $fetch('/api/matches', {
+      const res: IMatch = await $fetch('/api/matches', {
         method: 'POST',
         body: pair,
       })
@@ -99,6 +111,7 @@ const submitForm = async () => {
   learner.value = ''
 
   await refresh()
+  matches.value = [...matches.value!]
   isLoading.value = false
 }
 </script>
