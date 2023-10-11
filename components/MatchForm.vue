@@ -56,13 +56,21 @@ const submitForm = async () => {
     return
   }
 
-  setTimeout(() => {
-    // If the execution reaches here, it means that all checks have passed.
-    // TODO: Submit data to API and display matched set.
-    formFeedback.value = 'success'
-    isLoading.value = false
+
+  try {
+    const res = await $fetch('/api/matches', {
+      method: 'POST',
+      body: { soldier: soldier.value, learner: learner.value },
+    })
     soldier.value = ''
     learner.value = ''
-  }, 1000)
+    formFeedback.value = 'success'
+    console.log('Match created', res)
+  } catch (e) {
+    console.error(e)
+    formFeedback.value = 'error'
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>
