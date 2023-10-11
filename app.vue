@@ -4,12 +4,3 @@
     <UNotifications />
   </div>
 </template>
-
-<script setup lang="ts">
-useHead({
-  title: 'SoldierMatch',
-  meta: [
-    { name: 'robots', content: 'noindex' }
-  ],
-})
-</script>
